@@ -1,0 +1,231 @@
+{
+  "final_variant": {
+    "name": "Qwen + LoRA (A4)",
+    "adapter": "lora",
+    "rag_k": 0,
+    "decoding": "beam4"
+  },
+  "evaluation": {
+    "validation": [
+      {
+        "model": "Qwen zero-shot",
+        "adapter": null,
+        "rag_k": 0,
+        "decoding": "beam4",
+        "rougeL": 0.2754555088,
+        "anchored": 0.98,
+        "unsupported": 0.0902380952,
+        "novelty": 0.533434586,
+        "exact_copy": 0.01,
+        "valid": 0.9866666667,
+        "context_copy": 0.0,
+        "score": 0.434843243,
+        "sec_per_item": 0.0565567485
+      },
+      {
+        "model": "Qwen zero-shot + RAG",
+        "adapter": null,
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.2629189125,
+        "anchored": 0.86,
+        "unsupported": 0.3054854497,
+        "novelty": 0.4292872066,
+        "exact_copy": 0.1466666667,
+        "valid": 1.0,
+        "context_copy": 0.1433333333,
+        "score": 0.1698314478,
+        "sec_per_item": 0.1181932109
+      },
+      {
+        "model": "Qwen + LoRA (A4)",
+        "adapter": "lora",
+        "rag_k": 0,
+        "decoding": "beam4",
+        "rougeL": 0.3993990903,
+        "anchored": 0.96,
+        "unsupported": 0.122031746,
+        "novelty": 0.4516097003,
+        "exact_copy": 0.03,
+        "valid": 1.0,
+        "context_copy": 0.0,
+        "score": 0.4559897392,
+        "sec_per_item": 0.0853177564
+      },
+      {
+        "model": "Qwen + LoRA (A4) + RAG",
+        "adapter": "lora",
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.3425882561,
+        "anchored": 0.9366666667,
+        "unsupported": 0.2300555556,
+        "novelty": 0.4715928115,
+        "exact_copy": 0.03,
+        "valid": 1.0,
+        "context_copy": 0.0066666667,
+        "score": 0.3165571348,
+        "sec_per_item": 0.210549265
+      },
+      {
+        "model": "Qwen + LoRA-RAG",
+        "adapter": "lora_rag",
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.3742186044,
+        "anchored": 0.9566666667,
+        "unsupported": 0.141952381,
+        "novelty": 0.4685581283,
+        "exact_copy": 0.0433333333,
+        "valid": 1.0,
+        "context_copy": 0.01,
+        "score": 0.4258685469,
+        "sec_per_item": 0.2082756244
+      }
+    ],
+    "test": [
+      {
+        "model": "Qwen zero-shot",
+        "adapter": null,
+        "rag_k": 0,
+        "decoding": "beam4",
+        "rougeL": 0.2510743875,
+        "anchored": 0.9894561598,
+        "unsupported": 0.0937823722,
+        "novelty": 0.5531164745,
+        "exact_copy": 0.0022197558,
+        "valid": 0.9916759156,
+        "context_copy": 0.0,
+        "score": 0.43089088,
+        "sec_per_item": 0.0576315552
+      },
+      {
+        "model": "Qwen zero-shot + RAG",
+        "adapter": null,
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.2529793652,
+        "anchored": 0.8734739179,
+        "unsupported": 0.263686112,
+        "novelty": 0.4388161851,
+        "exact_copy": 0.141509434,
+        "valid": 1.0,
+        "context_copy": 0.1337402886,
+        "score": 0.2126089831,
+        "sec_per_item": 0.1172009859
+      },
+      {
+        "model": "Qwen + LoRA (A4)",
+        "adapter": "lora",
+        "rag_k": 0,
+        "decoding": "beam4",
+        "rougeL": 0.3868170101,
+        "anchored": 0.9766925638,
+        "unsupported": 0.1167399979,
+        "novelty": 0.4513191598,
+        "exact_copy": 0.0405105438,
+        "valid": 1.0,
+        "context_copy": 0.0,
+        "score": 0.4599401083,
+        "sec_per_item": 0.0864434857
+      },
+      {
+        "model": "Qwen + LoRA (A4) + RAG",
+        "adapter": "lora",
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.3330237365,
+        "anchored": 0.9428412875,
+        "unsupported": 0.2280277205,
+        "novelty": 0.4666776378,
+        "exact_copy": 0.038290788,
+        "valid": 1.0,
+        "context_copy": 0.0227524972,
+        "score": 0.3146720615,
+        "sec_per_item": 0.2091060869
+      },
+      {
+        "model": "Qwen + LoRA-RAG",
+        "adapter": "lora_rag",
+        "rag_k": 3,
+        "decoding": "beam4",
+        "rougeL": 0.370984154,
+        "anchored": 0.961709212,
+        "unsupported": 0.1274641932,
+        "novelty": 0.4614146156,
+        "exact_copy": 0.0477247503,
+        "valid": 1.0,
+        "context_copy": 0.0227524972,
+        "score": 0.4388235705,
+        "sec_per_item": 0.2087942675
+      }
+    ],
+    "training": {
+      "lora": {
+        "config": {
+          "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+          "base_revision": null,
+          "learning_rate": 0.0002,
+          "batch_size": 16,
+          "grad_accum": 1,
+          "epochs": 2,
+          "max_len": 192,
+          "warmup_ratio": 0.05,
+          "weight_decay": 0.0,
+          "lora_r": 16,
+          "lora_alpha": 32,
+          "lora_dropout": 0.05,
+          "target_modules": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "seed": 42
+        },
+        "examples": 14543,
+        "truncated_examples": 1,
+        "trainable_params": 8798208,
+        "total_params": 494032768,
+        "trainable_share_pct": 1.78,
+        "train_minutes": 14.07
+      },
+      "lora_rag": {
+        "config": {
+          "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+          "base_revision": null,
+          "learning_rate": 0.0002,
+          "batch_size": 8,
+          "grad_accum": 2,
+          "epochs": 2,
+          "max_len": 384,
+          "warmup_ratio": 0.05,
+          "weight_decay": 0.0,
+          "lora_r": 16,
+          "lora_alpha": 32,
+          "lora_dropout": 0.05,
+          "target_modules": [
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj"
+          ],
+          "seed": 42
+        },
+        "examples": 14543,
+        "truncated_examples": 3,
+        "trainable_params": 8798208,
+        "total_params": 494032768,
+        "trainable_share_pct": 1.78,
+        "train_minutes": 37.63
+      }
+    },
+    "selection_rule": "max validation score (A4 criterion); ties -> fewer context copies"
+  }
+}

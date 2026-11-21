@@ -6,13 +6,13 @@
 |---|---|---|
 | тип блюда | финальный LinearSVC (raw + clean) | macro-F1 **0.719**, accuracy 0.754 (строки с количествами); macro-F1 **0.669** (только названия) |
 | тип блюда | A4 LinearSVC / DistilBERT / baseline LogReg / Dummy | 0.710 / 0.698 / 0.660 / 0.041 |
-| название | Qwen + LoRA, beam=4 (A4) | ROUGE-L **0.386**, anchored 0.978, unsupported 0.115, novelty 0.452 |
+| название | **Qwen + LoRA, beam=4 (финал)** | ROUGE-L **0.387**, anchored 0.977, unsupported 0.117, novelty 0.451 |
+| название | Qwen + LoRA-RAG / LoRA + RAG / zero-shot + RAG | 0.371 / 0.333 / 0.253 (копий из контекста 2.3 % / 2.3 % / 13.4 %) |
 | название | Flan-T5 full / LoRA · Qwen zero-shot · trigram | 0.374 / 0.356 · 0.253 · 0.146 |
 | поиск | BM25 (validation) | ROUGE-L ближайшего названия 0.225, совпадение типа у 3 соседей 0.51 |
 | калибровка | temperature scaling | ECE 0.033; уверенность ≥ 0.6 → точность 0.87 на 69 % запросов |
 
-Сравнение RAG-вариантов генератора (validation и test) формирует `notebooks/final_training` — таблицы в
-`manifest.json → generator.evaluation` и на вкладке UI «О модели».
+Полные таблицы validation/test: `reports/final/final_eval.json` и [MODEL_CARD](MODEL_CARD.md).
 
 ## 2. Задержка и пропускная способность
 
@@ -34,7 +34,7 @@ locust, 20 пользователей, 60 с, профиль UI-сессии (6:
 
 | среда | задержка одного названия | источник |
 |---|---|---|
-| Kaggle T4 (GPU) | см. вывод ячейки «ms/request» ноутбука | `notebooks/final_training` |
+| Kaggle T4 (GPU), батч 32 | 0.09 с/название (LoRA), 0.21 с (RAG-варианты) | `final_eval.json → sec_per_item` |
 | HF Space, 2 vCPU | см. отчёт `load-test-report` после деплоя | `.github/workflows/deploy.yml` |
 
 Генерация — самая дорогая операция (beam=4, ≤24 токена). Доступ к модели сериализован блокировкой, поэтому при

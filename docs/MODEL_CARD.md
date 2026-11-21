@@ -31,16 +31,25 @@ validation по NLL (argmax не меняется; ECE на test 0.033; при �
 
 `score = 0.5·ROUGE-L + 0.3·anchored + 0.2·novelty − unsupported − (1 − valid)`; при равенстве — меньше `context_copy`.
 
-| вариант | адаптер | RAG k | что проверяет |
-|---|---|---|---|
-| Qwen zero-shot | — | 0 | перенос знаний без обучения |
-| Qwen zero-shot + RAG | — | 3 | даёт ли контекст эффект без обучения |
-| Qwen + LoRA (A4) | `lora` | 0 | лучшая модель A4 |
-| Qwen + LoRA (A4) + RAG | `lora` | 3 | контекст для модели, не обученной с ним |
-| Qwen + LoRA-RAG | `lora_rag` | 3 | обучение и inference в одном формате |
+Результаты прогона `notebooks/final_training` (Kaggle T4, `reports/final/final_eval.json`):
 
-Выбранный вариант записывается в `manifest.json → generator.final_variant` и используется режимом `auto` API/UI.
-Таблицы validation/test этого прогона — в `manifest.json → generator.evaluation` и на вкладке «О модели».
+| вариант | адаптер | RAG k | val score | val ROUGE-L | **test ROUGE-L** | test unsupported ↓ | test копия контекста |
+|---|---|---|---|---|---|---|---|
+| Qwen zero-shot | — | 0 | 0.435 | 0.275 | 0.251 | 0.094 | 0 % |
+| Qwen zero-shot + RAG | — | 3 | 0.170 | 0.263 | 0.253 | 0.264 | **13.4 %** |
+| **Qwen + LoRA (A4) — финал** | `lora` | 0 | **0.456** | **0.399** | **0.387** | 0.117 | 0 % |
+| Qwen + LoRA (A4) + RAG | `lora` | 3 | 0.317 | 0.343 | 0.333 | 0.228 | 2.3 % |
+| Qwen + LoRA-RAG | `lora_rag` | 3 | 0.426 | 0.374 | 0.371 | 0.127 | 2.3 % |
+
+**Финальный генератор — Qwen2.5-0.5B + LoRA (A4), beam=4.** На test ROUGE-L 0.387 воспроизводит A4 (0.386).
+RAG для генерации названий **не помог**: найденные рецепты отвлекают модель, без дообучения она копирует их
+названия (13 % дословных копий), а модель, обученная с контекстом (LoRA-RAG), почти не копирует, но уступает LoRA
+на 0.016 ROUGE-L и вдвое медленнее (0.21 против 0.09 с/название на T4). Поэтому RAG в системе используется там,
+где он полезен, — в поиске похожих рецептов и в чат-ассистенте, а адаптер `lora_rag` доступен в режиме
+`mode=lora_rag` для сравнения (вкладка «Сравнение моделей»).
+
+Обучение (T4): `lora` — 14 мин, `lora_rag` — 38 мин (батч 8 × накопление 2, промпты до 384 токенов);
+8 798 208 обучаемых параметров (1.78 % из 494 M); loss 1.85 → 1.41 за 2 эпохи.
 
 **Retriever.** BM25 по ингредиентам, база знаний — только train (14 543 рецепта). На validation: ROUGE-L названия
 ближайшего соседа 0.225 (TF-IDF из A4 — 0.185), совпадение типа блюда у 3 соседей 0.51 (0.46). Для чата —
@@ -77,12 +86,12 @@ validation по NLL (argmax не меняется; ECE на test 0.033; при �
 
 | артефакт | фиксация |
 |---|---|
-| данные | `full_format_recipes.json` SHA-256 `268811bc…d3bc`; split CSV SHA-256 в манифесте |
+| данные | `full_format_recipes.json` SHA-256 `268811bc…d3bc`; split CSV SHA-256 `96337ddb…` |
 | разбиение | `StratifiedGroupKFold(10)`, seed 42; пересобирается из сырого JSON идентично A4 (14 543 / 1 824 / 1 802) |
-| базовая LLM | `Qwen/Qwen2.5-0.5B-Instruct`, commit закрепляется в `generator.base_revision` |
+| базовая LLM | `Qwen/Qwen2.5-0.5B-Instruct`, commit `7ae55760…` закреплён в `generator.base_revision` |
 | адаптеры | `generator/lora`, `generator/lora_rag`, SHA-256 каждого файла |
 | код | версия пакета в манифесте, `uv.lock` |
-| бандл | тег `v1.0.0` на HF Hub; сервис скачивает ровно эту ревизию (`MENU_HF_REVISION`) и проверяет SHA-256 |
+| бандл | `bundle_version 1.0.0`, SHA-256 каждого файла в `manifest.json` (копия: `reports/final/manifest_v1.0.0.json`); сервис проверяет их при старте и показывает версию в каждом ответе |
 
 ## 5. Ограничения и риски
 

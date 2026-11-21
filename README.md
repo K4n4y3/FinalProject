@@ -7,7 +7,7 @@
 Интеллектуальная система, которая по списку ингредиентов:
 
 1. **определяет тип блюда** — TF-IDF + LinearSVC, 9 классов, test macro-F1 **0.719**;
-2. **придумывает название** — Qwen2.5-0.5B-Instruct + LoRA, по желанию с найденными похожими рецептами (RAG);
+2. **придумывает название** — Qwen2.5-0.5B-Instruct + LoRA, test ROUGE-L **0.387** (RAG-варианты сравнены, см. Model card);
 3. **отвечает «что приготовить из…»** — чат-ассистент, опирающийся на 14 543 рецепта Epicurious, с источниками.
 
 Финальный проект курса *AI Essentials: Theory and Applications* (Biloshchytskyi Yevhenii, AAI-2602): продолжение
@@ -15,10 +15,11 @@ Assignments 1–4 — от постановки задачи и подготов
 
 | | |
 |---|---|
-| **Демо (UI)** | `https://<HF_SPACE>.hf.space/ui` (см. [DEPLOYMENT](docs/DEPLOYMENT.md)) |
+| **Запуск** | `start_local.bat` (Docker Compose: сервис + Prometheus + Grafana), см. [DEPLOYMENT](docs/DEPLOYMENT.md) |
+| **UI** | http://localhost:7860/ui |
 | **REST API** | `/docs` (Swagger), `/redoc` |
 | **Мониторинг** | `/metrics` (Prometheus), `/v1/monitoring`, вкладка «Мониторинг» в UI, Grafana через `docker compose` |
-| **Модель** | версионированный бандл на Hugging Face Hub (manifest + SHA-256), см. [MODEL_CARD](docs/MODEL_CARD.md) |
+| **Модель** | версионированный бандл `artifacts/` (manifest + SHA-256), см. [MODEL_CARD](docs/MODEL_CARD.md) |
 
 ## Архитектура в двух словах
 
@@ -35,7 +36,7 @@ flowchart LR
       R -->|контекст k=3| G
       S --> M[Мониторинг<br/>Prometheus + окно]
     end
-    H[(HF Hub: бандл модели<br/>pinned revision)] -->|при старте| A
+    H[(artifacts/: бандл модели<br/>manifest + SHA-256)] -->|при старте| A
     M --> P[Prometheus/Grafana]
 ```
 
@@ -56,10 +57,11 @@ uv run menu build-bundle --lora adapters/lora --lora-rag adapters/lora_rag --ver
 uv run menu serve                         # http://localhost:7860/ui · /docs · /metrics
 ```
 
-Docker (сервис + Prometheus + Grafana):
+Docker (сервис + Prometheus + Grafana): `start_local.bat` на Windows или
 
 ```bash
-docker compose up --build                 # UI :7860/ui · Prometheus :9090 · Grafana :3000
+docker compose up -d --build              # UI :7860/ui · Prometheus :9090 · Grafana :3000
+docker compose --profile loadtest run --rm loadtest     # нагрузочный тест
 ```
 
 Пример запроса:
@@ -92,7 +94,7 @@ uv run pre-commit install                              # хуки перед к�
 ```
 
 CI (GitHub Actions) на каждый push: ruff → mypy → pytest с покрытием → сборка Docker-образа и smoke-тест
-контейнера. После успешного CI на `main` — автодеплой на Hugging Face Spaces и нагрузочный тест развёрнутого сервиса.
+контейнера. Опционально после CI — деплой на Hugging Face Spaces (`deploy.yml`).
 
 ## Документация
 
