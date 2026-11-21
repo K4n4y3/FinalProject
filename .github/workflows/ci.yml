@@ -24,7 +24,8 @@ jobs:
         run: |
           uv venv --python 3.11
           uv export --frozen --extra llm --no-emit-project --no-hashes -o req.txt
-          uv pip install "$(grep -E '^torch==' req.txt | cut -d';' -f1 | tr -d ' ')" --index-url https://download.pytorch.org/whl/cpu
+          grep -E '^torch==' req.txt > torch.txt
+          uv pip install -r torch.txt --index-url https://download.pytorch.org/whl/cpu
           grep -vE '^(torch|nvidia-|triton|cuda-)' req.txt > req-cpu.txt
           uv pip install -r req-cpu.txt
           uv pip install -e . --no-deps

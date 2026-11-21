@@ -20,7 +20,7 @@ RUN if [ "$WITH_LLM" = "1" ]; then EXTRA="--extra llm"; else EXTRA=""; fi \
  && uv export --frozen --no-dev $EXTRA --no-emit-project --no-hashes -o /tmp/req.txt \
  && grep -vE '^(torch|nvidia-|triton|cuda-)' /tmp/req.txt > /tmp/req-nocuda.txt \
  && if [ "$WITH_LLM" = "1" ]; then \
-      uv pip install "$(grep -E '^torch==' /tmp/req.txt | cut -d';' -f1 | tr -d ' ')" --index-url "$TORCH_INDEX"; fi \
+      grep -E '^torch==' /tmp/req.txt > /tmp/torch.txt && uv pip install -r /tmp/torch.txt --index-url "$TORCH_INDEX"; fi \
  && uv pip install -r /tmp/req-nocuda.txt \
  && rm -rf /root/.cache
 
