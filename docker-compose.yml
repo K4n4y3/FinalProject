@@ -33,5 +33,16 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     depends_on: [prometheus]
 
+  loadtest:
+    image: locustio/locust:2.32.4
+    profiles: ["loadtest"]
+    depends_on: [app]
+    volumes:
+      - ./loadtest:/mnt/locust:ro
+      - ./reports/perf:/out
+    command: >
+      -f /mnt/locust/locustfile.py --host http://app:7860 --headless -u 4 -r 1 -t 2m
+      --csv /out/local_full --html /out/local_full.html --only-summary
+
 volumes:
   hf-cache:
