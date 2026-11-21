@@ -20,7 +20,21 @@ def tab(page, name):
     time.sleep(0.8)
 
 
+def grafana_only(p) -> None:
+    """Grafana serves its assets from root_url (localhost:3000): run this inside Grafana's network namespace."""
+    b = p.chromium.launch()
+    page = b.new_page(viewport={"width": 1440, "height": 900}, device_scale_factor=2)
+    page.goto(f"{GRAFANA}/d/menu-overview/?orgId=1&kiosk&from=now-1h&to=now", wait_until="networkidle", timeout=60000)
+    time.sleep(8)
+    page.screenshot(path=OUT / "07_grafana.png")
+    print("grafana ok")
+    b.close()
+
+
 with sync_playwright() as p:
+    if os.environ.get("ONLY") == "grafana":
+        grafana_only(p)
+        sys.exit(0)
     b = p.chromium.launch()
     page = b.new_page(viewport={"width": 1440, "height": 900}, device_scale_factor=2)
     page.goto(f"{APP}/ui/", wait_until="load")
