@@ -80,10 +80,12 @@ def build_bundle(
         if dst.exists():
             shutil.rmtree(dst)
         shutil.copytree(src, dst, ignore=shutil.ignore_patterns("README.md", "*.bin.tmp"))
-    gen_cfg = {**DEFAULT_GENERATOR, **(generator or {})}
     available = (
         sorted(p.name for p in gen_dir.iterdir() if (p / "adapter_config.json").exists()) if gen_dir.exists() else []
     )
+    gen_cfg = {**DEFAULT_GENERATOR, **(generator or {})}
+    if not available and not (generator or {}).get("final_variant"):
+        gen_cfg["final_variant"] = {"name": "Qwen zero-shot", "adapter": None, "rag_k": 0, "decoding": "beam4"}
     if gen_cfg["final_variant"].get("adapter") not in [*available, None]:
         raise ValueError(f"final adapter {gen_cfg['final_variant']['adapter']!r} not in bundle {available}")
 

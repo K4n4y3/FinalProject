@@ -1,0 +1,666 @@
+{
+  "versions": {
+    "python": "3.13.15",
+    "numpy": "2.1.3",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.6.1",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1",
+    "peft": "0.20.0",
+    "matplotlib": "3.10.0",
+    "device": "Tesla T4"
+  },
+  "config": {
+    "seed": 42,
+    "split": {
+      "n_folds": 10,
+      "test_fold": 0,
+      "val_fold": 1
+    },
+    "distilbert": {
+      "model_name": "distilbert-base-uncased",
+      "max_length": 160,
+      "batch_size": 32,
+      "learning_rate": 5e-05,
+      "epochs": 3,
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.06,
+      "optimizer": "AdamW",
+      "loss": "CrossEntropyLoss"
+    },
+    "gen_val_n": 200,
+    "gen_test_n": null,
+    "t5_full": {
+      "model_name": "google/flan-t5-base",
+      "learning_rate": 0.0003,
+      "batch_size": 32,
+      "epochs": 2,
+      "max_source_len": 128,
+      "max_target_len": 32,
+      "optimizer": "AdamW",
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.05,
+      "loss": "token CrossEntropy (teacher forcing)"
+    },
+    "t5_lora": {
+      "model_name": "google/flan-t5-base",
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "epochs": 2,
+      "max_source_len": 128,
+      "max_target_len": 32,
+      "optimizer": "AdamW",
+      "weight_decay": 0.0,
+      "warmup_ratio": 0.05,
+      "loss": "token CrossEntropy (teacher forcing)",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "target_modules": [
+        "q",
+        "k",
+        "v",
+        "o",
+        "wi_0",
+        "wi_1",
+        "wo"
+      ]
+    },
+    "qwen_lora": {
+      "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+      "learning_rate": 0.0002,
+      "batch_size": 16,
+      "grad_accum": 1,
+      "epochs": 2,
+      "max_len": 192,
+      "optimizer": "AdamW",
+      "weight_decay": 0.0,
+      "warmup_ratio": 0.05,
+      "loss": "causal CrossEntropy only on answer tokens",
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ]
+    },
+    "max_new_tokens": 24,
+    "gen_batch_size": 64,
+    "train_n_limit": null
+  },
+  "quality": [
+    {
+      "check": "пустые записи (все поля отсутствуют)",
+      "count": 19,
+      "share_%": 0.09,
+      "comment": "артефакт скрейпинга"
+    },
+    {
+      "check": "пропуски: desc",
+      "count": 6616,
+      "share_%": 32.9,
+      "comment": ""
+    },
+    {
+      "check": "пропуски: calories",
+      "count": 4135,
+      "share_%": 20.56,
+      "comment": ""
+    },
+    {
+      "check": "пропуски: protein",
+      "count": 4182,
+      "share_%": 20.79,
+      "comment": ""
+    },
+    {
+      "check": "пропуски: fat",
+      "count": 4203,
+      "share_%": 20.9,
+      "comment": ""
+    },
+    {
+      "check": "пропуски: sodium",
+      "count": 4137,
+      "share_%": 20.57,
+      "comment": ""
+    },
+    {
+      "check": "пропуски: rating",
+      "count": 11,
+      "share_%": 0.05,
+      "comment": ""
+    },
+    {
+      "check": "рецепты без ингредиентов (пустой список)",
+      "count": 57,
+      "share_%": 0.28,
+      "comment": "нет входа X"
+    },
+    {
+      "check": "title с лишними пробелами по краям",
+      "count": 20111,
+      "share_%": 100.0,
+      "comment": "у названий хвостовой пробел — артефакт скрейпера"
+    },
+    {
+      "check": "полные дубликаты: название + те же строки ингредиентов",
+      "count": 1875,
+      "share_%": 9.32,
+      "comment": "повторно опубликованные рецепты"
+    },
+    {
+      "check": "одно название — разные списки ингредиентов",
+      "count": 464,
+      "share_%": 2.31,
+      "comment": "версии рецепта; объединяются в одну группу split"
+    },
+    {
+      "check": "rating = 0 (вне шкалы 1.25–5.0)",
+      "count": 1849,
+      "share_%": 9.19,
+      "comment": "0 = нет оценок, а не «плохой рецепт»"
+    },
+    {
+      "check": "calories > 5000 на порцию",
+      "count": 77,
+      "share_%": 0.38,
+      "comment": "неправдоподобно: ошибка расчёта/порций"
+    },
+    {
+      "check": "calories = 0",
+      "count": 13,
+      "share_%": 0.06,
+      "comment": "неправдоподобно для блюда"
+    },
+    {
+      "check": "энергия от жира > калорий (9·fat > calories)",
+      "count": 2,
+      "share_%": 0.01,
+      "comment": "физически невозможно"
+    },
+    {
+      "check": "теги-дубли в разном написании (пар)",
+      "count": 4,
+      "share_%": 0.59,
+      "comment": "Drink/Drinks: 1087/11; Cookie/Cookies: 69/273; Condiment/Condiment/Spread: 96/924; turkey/Turkey: 456/0"
+    },
+    {
+      "check": "дата = 2004 год",
+      "count": 11576,
+      "share_%": 57.56,
+      "comment": "массовая загрузка архива, а не дата создания"
+    }
+  ],
+  "cleaning": [
+    {
+      "step": "1. удалить пустые записи",
+      "rows_before": 20130,
+      "rows_after": 20111,
+      "changed": 19,
+      "why": "нет названия и ингредиентов — нечего моделировать"
+    },
+    {
+      "step": "2. удалить рецепты без ингредиентов",
+      "rows_before": 20111,
+      "rows_after": 20054,
+      "changed": 57,
+      "why": "нет входа X для обеих задач"
+    },
+    {
+      "step": "3. нормализовать пробелы в title",
+      "rows_before": 20054,
+      "rows_after": 20054,
+      "changed": "—",
+      "why": "одинаковые названия должны совпадать при сравнении"
+    },
+    {
+      "step": "4. строки ингредиентов → названия (сырые строки сохранены в ing_raw)",
+      "rows_before": 20054,
+      "rows_after": 20049,
+      "changed": 5,
+      "why": "генератору нужны продукты, а не «1 1/2 cups»; классификатор сравнивает оба представления (RQ2)"
+    },
+    {
+      "step": "5. удалить дубликаты (название + набор ингредиентов)",
+      "rows_before": 20049,
+      "rows_after": 18169,
+      "changed": 1880,
+      "why": "повторные публикации завышали бы метрики и протекали между train и test"
+    },
+    {
+      "step": "6. rating = 0 → NaN (1621 шт.)",
+      "rows_before": 18169,
+      "rows_after": 18169,
+      "changed": "—",
+      "why": "0 вне шкалы 1.25–5.0 и означает «нет оценок»"
+    },
+    {
+      "step": "7. неправдоподобная пищевая ценность → NaN (81 шт.)",
+      "rows_before": 18169,
+      "rows_after": 18169,
+      "changed": "—",
+      "why": "ошибки расчёта; строки нужны для текстовых задач, поэтому обнуляются только значения"
+    },
+    {
+      "step": "8. объединить теги в разном написании",
+      "rows_before": 18169,
+      "rows_after": 18169,
+      "changed": "—",
+      "why": "Drink/Drinks, Cookie/Cookies… — один смысл, иначе класс теряет примеры"
+    },
+    {
+      "step": "9. построить целевую переменную course (9 типов блюд)",
+      "rows_before": 18169,
+      "rows_after": 18169,
+      "changed": "—",
+      "why": "одна понятная метка вместо 674 тегов; без метки рецепт остаётся только в генерации"
+    }
+  ],
+  "split": {
+    "train": 14543,
+    "validation": 1824,
+    "test": 1802
+  },
+  "best_classical": {
+    "model": "LinearSVC",
+    "X": "ing_raw",
+    "C": "0.3",
+    "ngram": "(1, 2)",
+    "min_df": "3",
+    "class_weight": "balanced"
+  },
+  "best_decoding": "beam=4, no_repeat=3",
+  "classification_validation": [
+    {
+      "model": "LinearSVC",
+      "X": "ing_raw",
+      "accuracy": 0.7575332866152769,
+      "macro_f1": 0.7166041184618848,
+      "weighted_f1": 0.7546819073671126,
+      "fit_seconds": 1.0760934410000118
+    },
+    {
+      "model": "Logistic Regression",
+      "X": "ing_raw",
+      "accuracy": 0.7561317449194114,
+      "macro_f1": 0.707908264844439,
+      "weighted_f1": 0.7506341592951558,
+      "fit_seconds": 5.185480014000007
+    },
+    {
+      "model": "LinearSVC",
+      "X": "ing_clean",
+      "accuracy": 0.731604765241766,
+      "macro_f1": 0.6858002111522918,
+      "weighted_f1": 0.7282358744717208,
+      "fit_seconds": 0.6433917290000295
+    },
+    {
+      "model": "Logistic Regression",
+      "X": "ing_clean",
+      "accuracy": 0.7168885774351786,
+      "macro_f1": 0.6636400335161362,
+      "weighted_f1": 0.710441794126566,
+      "fit_seconds": 4.848998698999992
+    },
+    {
+      "model": "Random Forest (300 trees)",
+      "X": "ing_clean",
+      "accuracy": 0.6986685353889278,
+      "macro_f1": 0.6242766996491587,
+      "weighted_f1": 0.6821653598563803,
+      "fit_seconds": 12.437156371000015
+    },
+    {
+      "model": "Multinomial NB",
+      "X": "ing_clean",
+      "accuracy": 0.6608269096005606,
+      "macro_f1": 0.5644229876168193,
+      "weighted_f1": 0.6335561835937368,
+      "fit_seconds": 0.25770791100001134
+    },
+    {
+      "model": "Dummy (most frequent)",
+      "X": "ing_clean",
+      "accuracy": 0.25998598458304134,
+      "macro_f1": 0.04585341737733284,
+      "weighted_f1": 0.10729121277008714,
+      "fit_seconds": 0.22229485100001511
+    }
+  ],
+  "classification_test": [
+    {
+      "model": "Dummy (most frequent)",
+      "role": "trivial baseline",
+      "accuracy": 0.22861356932153393,
+      "macro_f1": 0.041349873282646395,
+      "weighted_f1": 0.08507827909925032
+    },
+    {
+      "model": "TF-IDF + LogReg (midterm baseline)",
+      "role": "baseline",
+      "accuracy": 0.7123893805309734,
+      "macro_f1": 0.6603769843630656,
+      "weighted_f1": 0.7041352687278756
+    },
+    {
+      "model": "LinearSVC + TF-IDF on ing_raw (GridSearch)",
+      "role": "tuned classical ML",
+      "accuracy": 0.7463126843657817,
+      "macro_f1": 0.7099821242330844,
+      "weighted_f1": 0.7435023116854308
+    },
+    {
+      "model": "DistilBERT on ing_raw (fine-tuned)",
+      "role": "fine-tuning / transfer learning",
+      "accuracy": 0.7426253687315634,
+      "macro_f1": 0.6983626697373357,
+      "weighted_f1": 0.7387197967239172
+    }
+  ],
+  "per_class_f1": {
+    "baseline": {
+      "Appetizer": 0.4113,
+      "Breakfast & Bread": 0.4874,
+      "Dessert": 0.8858,
+      "Drink": 0.9013,
+      "Main": 0.6887,
+      "Salad": 0.705,
+      "Sauce & Condiment": 0.6094,
+      "Side": 0.6141,
+      "Soup & Stew": 0.6404
+    },
+    "tuned": {
+      "Appetizer": 0.5093,
+      "Breakfast & Bread": 0.6241,
+      "Dessert": 0.9033,
+      "Drink": 0.9244,
+      "Main": 0.7385,
+      "Salad": 0.7357,
+      "Sauce & Condiment": 0.6638,
+      "Side": 0.6341,
+      "Soup & Stew": 0.6565
+    },
+    "distilbert": {
+      "Appetizer": 0.3497,
+      "Breakfast & Bread": 0.5844,
+      "Dessert": 0.9056,
+      "Drink": 0.9264,
+      "Main": 0.704,
+      "Salad": 0.7097,
+      "Sauce & Condiment": 0.716,
+      "Side": 0.6686,
+      "Soup & Stew": 0.7209
+    },
+    "Δ distilbert − tuned": {
+      "Appetizer": -0.1597,
+      "Breakfast & Bread": -0.0397,
+      "Dessert": 0.0023,
+      "Drink": 0.002,
+      "Main": -0.0346,
+      "Salad": -0.026,
+      "Sauce & Condiment": 0.0522,
+      "Side": 0.0344,
+      "Soup & Stew": 0.0644
+    }
+  },
+  "generation_test": [
+    {
+      "model": "Real titles (reference)",
+      "role": "upper reference",
+      "trainable_params": NaN,
+      "train_minutes": NaN,
+      "rougeL": 1.0,
+      "anchored": 0.8740288568257492,
+      "unsupported": 0.21735593608512585,
+      "novelty": 0.4739749690387117,
+      "exact_copy": 0.003329633740288568,
+      "valid": 1.0
+    },
+    {
+      "model": "Retrieval (copy nearest train title)",
+      "role": "control",
+      "trainable_params": NaN,
+      "train_minutes": NaN,
+      "rougeL": 0.1951512019578543,
+      "anchored": 0.6920088790233074,
+      "unsupported": 0.5434847523915226,
+      "novelty": 3.819857243438386e-18,
+      "exact_copy": 1.0,
+      "valid": 1.0
+    },
+    {
+      "model": "Trigram LM (baseline)",
+      "role": "baseline",
+      "trainable_params": 24354.0,
+      "train_minutes": 0.017254068199999514,
+      "rougeL": 0.14612286068567013,
+      "anchored": 0.9655937846836848,
+      "unsupported": 0.5578854183182708,
+      "novelty": 0.38852090778384646,
+      "exact_copy": 0.0,
+      "valid": 1.0
+    },
+    {
+      "model": "Flan-T5-base full fine-tuning",
+      "role": "full fine-tuning / transfer",
+      "trainable_params": 247577856.0,
+      "train_minutes": 15.957298126400001,
+      "rougeL": 0.37377337023998747,
+      "anchored": 0.9811320754716981,
+      "unsupported": 0.11453807938269644,
+      "novelty": 0.46925298329185605,
+      "exact_copy": 0.025527192008879023,
+      "valid": 1.0
+    },
+    {
+      "model": "Flan-T5-base + LoRA",
+      "role": "LoRA (PEFT)",
+      "trainable_params": 6782976.0,
+      "train_minutes": 13.546804011983333,
+      "rougeL": 0.3564011565794071,
+      "anchored": 0.9855715871254163,
+      "unsupported": 0.10995719042333912,
+      "novelty": 0.4727986780863588,
+      "exact_copy": 0.019422863485016647,
+      "valid": 1.0
+    },
+    {
+      "model": "Qwen2.5-0.5B-Instruct zero-shot",
+      "role": "transfer learning (no training)",
+      "trainable_params": 0.0,
+      "train_minutes": 0.0,
+      "rougeL": 0.25327270210360464,
+      "anchored": 0.9794672586015538,
+      "unsupported": 0.1838326844569908,
+      "novelty": 0.5219358758358096,
+      "exact_copy": 0.00388457269700333,
+      "valid": 0.9950055493895672
+    },
+    {
+      "model": "Qwen2.5-0.5B + LoRA",
+      "role": "LLM + LoRA (PEFT)",
+      "trainable_params": 8798208.0,
+      "train_minutes": 15.871233623566665,
+      "rougeL": 0.37360625935579445,
+      "anchored": 0.9589345172031076,
+      "unsupported": 0.15448443528354738,
+      "novelty": 0.44575696763672845,
+      "exact_copy": 0.04051054384017758,
+      "valid": 1.0
+    },
+    {
+      "model": "Qwen2.5-0.5B + LoRA (beam=4, no_repeat=3)",
+      "role": "LLM + LoRA + tuned decoding",
+      "trainable_params": 8798208.0,
+      "train_minutes": 15.871233623566665,
+      "rougeL": 0.3860433843990948,
+      "anchored": 0.9778024417314095,
+      "unsupported": 0.11546363828550289,
+      "novelty": 0.4518311504422334,
+      "exact_copy": 0.039400665926748055,
+      "valid": 1.0
+    }
+  ],
+  "decoding_search": [
+    {
+      "decoding": "beam=4, no_repeat=3",
+      "val_score": 0.42035518077307843,
+      "rougeL": 0.3718841689442309,
+      "anchored": 0.945,
+      "unsupported": 0.13991666666666666,
+      "novelty": 0.4541488148381483,
+      "exact_copy": 0.04,
+      "valid": 1.0
+    },
+    {
+      "decoding": "greedy, no_repeat=3",
+      "val_score": 0.4061141320142631,
+      "rougeL": 0.3657191433437563,
+      "anchored": 0.94,
+      "unsupported": 0.1514285714285714,
+      "novelty": 0.46341565885478203,
+      "exact_copy": 0.04,
+      "valid": 1.0
+    },
+    {
+      "decoding": "sample T=0.7, top_p=0.9",
+      "val_score": 0.39648431200799594,
+      "rougeL": 0.347397536459069,
+      "anchored": 0.945,
+      "unsupported": 0.1536547619047619,
+      "novelty": 0.46470152841611656,
+      "exact_copy": 0.03,
+      "valid": 1.0
+    },
+    {
+      "decoding": "sample T=1.0, top_p=0.95",
+      "val_score": 0.27886781798034316,
+      "rougeL": 0.28446030706479625,
+      "anchored": 0.915,
+      "unsupported": 0.23452976190476188,
+      "novelty": 0.48333713176353416,
+      "exact_copy": 0.025,
+      "valid": 1.0
+    }
+  ],
+  "interpretation": [
+    "A: среди улучшений baseline наибольший прирост macro-F1 дал шаг «TF-IDF + LogReg (midterm baseline)» → «LinearSVC + TF-IDF on ing_raw (GridSearch)» (Δ = +0.050).",
+    "A (RQ2): полные строки ингредиентов против названий на validation: LogReg 0.708 vs 0.664, LinearSVC 0.717 vs 0.686; GridSearch выбрал X = ing_raw.",
+    "A: DistilBERT на test: accuracy 0.743, macro-F1 0.698; сильнее всего изменился класс «Appetizer» (Δ F1 = -0.160); худший класс — «Appetizer» (F1 = 0.350).",
+    "B: наибольший прирост ROUGE-L дал шаг «Trigram LM (baseline)» → «Flan-T5-base full fine-tuning» (Δ = +0.228).",
+    "B: LoRA на Flan-T5 обучает 2.74 % весов; ROUGE-L 0.356 против 0.374 у full FT (95 % качества).",
+    "B: Qwen zero-shot → LoRA: ROUGE-L 0.253 → 0.374, unsupported 0.184 → 0.154, точных копий 0.4% → 4.1%."
+  ],
+  "comparison_foodcom": {
+    "Food.com (A3)": {
+      "baseline LogReg macro-F1": 0.539,
+      "tuned macro-F1": 0.559,
+      "DistilBERT macro-F1": 0.582,
+      "DistilBERT accuracy": 0.709,
+      "trigram ROUGE-L(title)": 0.126,
+      "Flan-T5 full ROUGE-L(title)": 0.272,
+      "Flan-T5 LoRA ROUGE-L(title)": 0.26,
+      "Qwen zero-shot ROUGE-L(title)": 0.182,
+      "Qwen LoRA ROUGE-L(title)": 0.236
+    },
+    "Epicurious (A4)": {
+      "baseline LogReg macro-F1": 0.66,
+      "tuned macro-F1": 0.71,
+      "DistilBERT macro-F1": 0.698,
+      "DistilBERT accuracy": 0.743,
+      "trigram ROUGE-L(title)": 0.146,
+      "Flan-T5 full ROUGE-L(title)": 0.374,
+      "Flan-T5 LoRA ROUGE-L(title)": 0.356,
+      "Qwen zero-shot ROUGE-L(title)": 0.253,
+      "Qwen LoRA ROUGE-L(title)": 0.374
+    }
+  },
+  "train_log": {
+    "DistilBERT": {
+      "run": "DistilBERT full fine-tuning",
+      "model_name": "distilbert-base-uncased",
+      "learning_rate": 5e-05,
+      "batch_size": 32,
+      "epochs": 3,
+      "optimizer": "AdamW",
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.06,
+      "loss": "CrossEntropyLoss",
+      "max_length": 160,
+      "input_X": "ing_raw",
+      "trainable_params": 66960393,
+      "scheduler": "linear warmup/decay",
+      "precision": "fp16 autocast"
+    },
+    "Flan-T5-base full fine-tuning": {
+      "run": "Flan-T5-base full fine-tuning",
+      "model_name": "google/flan-t5-base",
+      "learning_rate": 0.0003,
+      "batch_size": 32,
+      "epochs": 2,
+      "optimizer": "AdamW",
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.05,
+      "loss": "token CrossEntropy (teacher forcing)",
+      "max_source_len": 128,
+      "max_target_len": 32,
+      "trainable_params": 247577856,
+      "total_params": 247577856,
+      "trainable_share_%": 100.0,
+      "train_examples": 14543,
+      "precision": "fp32"
+    },
+    "Flan-T5-base + LoRA": {
+      "run": "Flan-T5-base + LoRA",
+      "model_name": "google/flan-t5-base",
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "epochs": 2,
+      "optimizer": "AdamW",
+      "weight_decay": 0.0,
+      "warmup_ratio": 0.05,
+      "loss": "token CrossEntropy (teacher forcing)",
+      "max_source_len": 128,
+      "max_target_len": 32,
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "target_modules": "q, k, v, o, wi_0, wi_1, wo",
+      "trainable_params": 6782976,
+      "total_params": 247577856,
+      "trainable_share_%": 2.74,
+      "train_examples": 14543,
+      "precision": "fp32"
+    },
+    "Qwen2.5-0.5B + LoRA": {
+      "run": "Qwen2.5-0.5B + LoRA",
+      "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+      "learning_rate": 0.0002,
+      "batch_size": 16,
+      "grad_accum": 1,
+      "epochs": 2,
+      "optimizer": "AdamW",
+      "weight_decay": 0.0,
+      "warmup_ratio": 0.05,
+      "loss": "causal CrossEntropy only on answer tokens",
+      "max_len": 192,
+      "lora_r": 16,
+      "lora_alpha": 32,
+      "lora_dropout": 0.05,
+      "target_modules": "q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj",
+      "trainable_params": 8798208,
+      "total_params": 494032768,
+      "trainable_share_%": 1.78,
+      "train_examples": 14543,
+      "precision": "fp32 weights + fp16 autocast"
+    }
+  }
+}

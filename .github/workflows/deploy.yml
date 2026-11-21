@@ -1,0 +1,66 @@
+name: Deploy to Hugging Face Spaces
+
+# Continuous deployment: after CI succeeds on main, the Space is rebuilt from this commit.
+# Required repository settings (Settings → Secrets and variables → Actions):
+#   secret   HF_TOKEN           write token of the Hugging Face account
+#   variable HF_SPACE           e.g. K4n4y3/menu-from-nn
+#   variable HF_MODEL_REPO      e.g. K4n4y3/menu-from-nn   (model bundle published by the training notebook)
+#   variable HF_MODEL_REVISION  tag or commit of the bundle, e.g. v1.0.0
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') && vars.HF_SPACE != '' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: huggingface-space
+      url: https://${{ steps.url.outputs.host }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface-hub>=0.24"
+      - name: Upload to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+          HF_MODEL_REPO: ${{ vars.HF_MODEL_REPO }}
+          HF_MODEL_REVISION: ${{ vars.HF_MODEL_REVISION }}
+        run: python scripts/deploy_space.py
+      - id: url
+        run: echo "host=$(echo '${{ vars.HF_SPACE }}' | tr '/_.' '---' | tr 'A-Z' 'a-z').hf.space" >> "$GITHUB_OUTPUT"
+
+  smoke-and-load-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "locust>=2.29" httpx
+      - name: Wait until the Space is healthy (image build + model download)
+        run: |
+          HOST="https://$(echo '${{ vars.HF_SPACE }}' | tr '/_.' '---' | tr 'A-Z' 'a-z').hf.space"
+          echo "HOST=$HOST" >> "$GITHUB_ENV"
+          for i in $(seq 1 90); do
+            s=$(curl -fs "$HOST/health" | python -c "import sys,json; print(json.load(sys.stdin)['status'])" 2>/dev/null || true)
+            echo "attempt $i: $s"; [ "$s" = "ok" ] && break; sleep 20
+          done
+          curl -fs "$HOST/health"
+      - name: Load test (locust, 2 minutes)
+        run: |
+          locust -f loadtest/locustfile.py --host "$HOST" --headless -u 4 -r 1 -t 2m \
+            --csv loadtest-report --html loadtest-report.html --only-summary
+          python loadtest/summarize.py loadtest-report_stats.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-test-report
+          path: loadtest-report*

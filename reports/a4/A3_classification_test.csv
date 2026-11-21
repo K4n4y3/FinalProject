@@ -1,0 +1,5 @@
+model,role,accuracy,macro_f1,weighted_f1
+Dummy (most frequent),trivial baseline,0.22861356932153393,0.041349873282646395,0.08507827909925032
+TF-IDF + LogReg (midterm baseline),baseline,0.7123893805309734,0.6603769843630656,0.7041352687278756
+LinearSVC + TF-IDF on ing_raw (GridSearch),tuned classical ML,0.7463126843657817,0.7099821242330844,0.7435023116854308
+DistilBERT on ing_raw (fine-tuned),fine-tuning / transfer learning,0.7426253687315634,0.6983626697373357,0.7387197967239172

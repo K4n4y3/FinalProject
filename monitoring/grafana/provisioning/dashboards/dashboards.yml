@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: menu
+    folder: Menu from Neural Networks
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

@@ -71,7 +71,7 @@ extend-immutable-calls = ["fastapi.Depends", "fastapi.Security", "typer.Option",
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["PLR2004", "S101"]
-"notebooks/**" = ["E501", "PLR0915"]
+"notebooks/**" = ["E501", "PLR0915", "E402", "B018"]  # notebook cells: imports per cell, display expressions
 "src/menu/ui/gradio_app.py" = ["E501"]  # Markdown templates
 
 [tool.mypy]
