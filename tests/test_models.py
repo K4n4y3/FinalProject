@@ -9,7 +9,7 @@ from menu.models.generator import RetrievalFallbackGenerator
 from menu.rag.prompts import clean_title, title_messages
 from menu.rag.retriever import BM25, RecipeRetriever
 from menu.training import rag_examples
-from tests.conftest import make_split
+from tests.synthetic import make_split
 
 
 @pytest.fixture(scope="module")

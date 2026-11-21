@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from tests.conftest import SIGNATURES
+from tests.synthetic import SIGNATURES
 
 
 def build_tiny(root: Path) -> Path:

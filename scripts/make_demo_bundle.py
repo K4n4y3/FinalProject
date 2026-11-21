@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tests.conftest import make_split
+from tests.synthetic import make_split
 
 from menu.bundle import build_bundle
 
