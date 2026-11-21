@@ -55,7 +55,7 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "sum(rate(menu_requests_total{status!=\"ok\"}[5m])) / clamp_min(sum(rate(menu_requests_total[5m])),1e-9)",
+     "expr": "(sum(rate(menu_requests_total{status!=\"ok\"}[5m])) or vector(0)) / clamp_min(sum(rate(menu_requests_total[5m])), 1e-9)",
      "legendFormat": ""
     }
    ],
