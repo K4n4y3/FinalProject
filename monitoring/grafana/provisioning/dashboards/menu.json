@@ -63,8 +63,8 @@
     "defaults": {
      "unit": "percentunit",
      "min": 0,
-     "softMax": 0.05,
-     "decimals": 1
+     "decimals": 1,
+     "max": 0.05
     },
     "overrides": []
    },
