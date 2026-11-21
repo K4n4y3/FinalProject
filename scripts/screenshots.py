@@ -1,12 +1,15 @@
 """Screenshots of the running local stack (run inside the compose network, see screenshots_local.bat)."""
 
+import os
 import sys
 import time
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-APP, GRAFANA, PROM = "http://app:7860", "http://grafana:3000", "http://prometheus:9090"
+APP = os.environ.get("APP_URL", "http://app:7860")
+GRAFANA = os.environ.get("GRAFANA_URL", "http://grafana:3000")
+PROM = os.environ.get("PROM_URL", "http://prometheus:9090")
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "/out")
 OUT.mkdir(parents=True, exist_ok=True)
 MARGARITA = "blackberries\npoblano peppers\nsilver tequila\ncointreau"
@@ -35,9 +38,7 @@ with sync_playwright() as p:
 
     tab(page, "Сравнение моделей")
     page.get_by_role("button", name="Сравнить все генераторы").click()
-    page.wait_for_function(
-        "[...document.querySelectorAll('table')].some(t => t.innerText.includes('LoRA-RAG'))", timeout=240000
-    )
+    page.get_by_text("Qwen + LoRA-RAG").wait_for(timeout=300000)
     time.sleep(1)
     page.screenshot(path=OUT / "02_compare.png")
     print("compare ok")
@@ -62,11 +63,15 @@ with sync_playwright() as p:
     time.sleep(1)
     page.screenshot(path=OUT / "06_swagger.png")
 
-    page.goto(f"{GRAFANA}/d/menu-overview/?orgId=1&kiosk&from=now-30m&to=now", wait_until="networkidle")
-    time.sleep(6)
-    page.screenshot(path=OUT / "07_grafana.png")
-    page.goto(f"{PROM}/alerts", wait_until="networkidle")
-    time.sleep(2)
-    page.screenshot(path=OUT / "08_prometheus_alerts.png")
+    for name, url, wait in [
+        ("07_grafana.png", f"{GRAFANA}/d/menu-overview/?orgId=1&kiosk&from=now-1h&to=now", 6),
+        ("08_prometheus_alerts.png", f"{PROM}/alerts", 2),
+    ]:
+        try:
+            page.goto(url, wait_until="networkidle", timeout=30000)
+            time.sleep(wait)
+            page.screenshot(path=OUT / name)
+        except Exception as exc:
+            print("skipped", name, exc)
     print("all screenshots saved to", OUT)
     b.close()
