@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.env
+# data and model artifacts are versioned on the Hugging Face Hub, not in git
+data/
+artifacts/
+adapters/
+outputs/
+*.joblib
+*.safetensors
+.gradio/
