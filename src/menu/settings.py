@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     enable_dense: bool = True
     llm_threads: int | None = None
     llm_device: str = "auto"
-    chat_max_new_tokens: int = 120
+    chat_max_new_tokens: int = 48
     request_timeout_s: float = 60.0
     api_key: str | None = None  # if set, /v1/* requires the X-API-Key header
     mount_ui: bool = True

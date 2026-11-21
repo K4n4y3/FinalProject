@@ -13,8 +13,8 @@ SYSTEM_PROMPT_RAG = (
     "Similar published recipes are shown for style; invent a new title for the given ingredients, do not copy them."
 )
 CHAT_SYSTEM = (
-    "You are a concise cooking assistant. Answer using ONLY the recipes provided in the context. "
-    "Recommend one or two of them, say why they fit and which ingredients are missing. Answer in 2-4 sentences."
+    "You are a cooking assistant. Choose the ONE recipe from the numbered list that best answers the question. "
+    "Reply in exactly this format: <number>: <one short sentence why it fits>."
 )
 
 MAX_CONTEXT_INGREDIENTS = 12
@@ -46,6 +46,18 @@ def chat_messages(question: str, context: Sequence[Hit]) -> list[dict[str, str]]
         {"role": "system", "content": CHAT_SYSTEM},
         {"role": "user", "content": f"Recipes:\n{ctx}\n\nQuestion: {question}"},
     ]
+
+
+def parse_choice(text: str, n: int) -> tuple[int | None, str]:
+    """'2: Uses the lemon and the rice.' -> (1, 'Uses the lemon and the rice.'). Index is 0-based; None if unusable."""
+    m = re.match(r"\s*\[?(\d+)\]?\s*[:.)\-]?\s*(.*)", str(text).strip(), flags=re.S)
+    if not m or not 1 <= int(m.group(1)) <= n:
+        return None, ""
+    reason = m.group(2).strip().split("\n")[0]
+    reason = re.split(r"(?<=[.!?])\s", reason)[0].strip()  # one sentence
+    if reason and not reason.endswith((".", "!", "?")):
+        reason += "."
+    return int(m.group(1)) - 1, reason[:240]
 
 
 def clean_title(text: str) -> tuple[str, bool]:

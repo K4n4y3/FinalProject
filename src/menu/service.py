@@ -19,7 +19,7 @@ from menu.models.generator import (
     adapter_dirs,
 )
 from menu.monitoring import Event, Monitor, log_event
-from menu.rag.prompts import chat_messages, clean_title, title_messages
+from menu.rag.prompts import chat_messages, clean_title, parse_choice, title_messages
 from menu.rag.retriever import Hit, RecipeRetriever
 from menu.schemas import (
     ChatOut,
@@ -288,16 +288,18 @@ class MenuService:
                     False,
                 )
             elif self.llm_ready:
+                # constrained generation: the LLM only picks a recipe and justifies it; facts come from the KB
                 raw = self.generator.generate(
                     [chat_messages(message, hits)],
                     adapter=None,
                     decoding="greedy",
                     max_new_tokens=self.settings.chat_max_new_tokens,
                 )
-                answer = raw[0].strip()
-                grounded = _mentions(answer, hits)
+                idx, reason = parse_choice(raw[0] if raw else "", len(hits))
+                grounded = idx is not None
                 if not grounded:
-                    warnings.append("the answer does not cite a retrieved recipe; sources are listed below")
+                    warnings.append("the model did not pick a listed recipe; the best search match is shown")
+                answer = _template_answer(message, hits, best=idx or 0, reason=reason)
             else:
                 answer, grounded = _template_answer(message, hits), True
             out = ChatOut(
@@ -314,21 +316,19 @@ class MenuService:
             self.monitor.record(Event(time.time(), "chat", time.perf_counter() - t0, ok))
 
 
-def _mentions(answer: str, hits: list[Hit]) -> bool:
-    a = answer.lower()
-    return any(h.title.lower() in a or f"[{i + 1}]" in a for i, h in enumerate(hits))
-
-
-def _template_answer(question: str, hits: list[Hit]) -> str:
+def _template_answer(question: str, hits: list[Hit], best: int = 0, reason: str = "") -> str:
     q = set(re.findall(r"[a-z]+", question.lower()))
-    best = hits[0]
-    have = [x for x in best.ingredients.split("; ") if set(x.split()) & q]
-    missing = [x for x in best.ingredients.split("; ") if not set(x.split()) & q][:5]
-    parts = [f"Try “{best.title}”" + (f" ({best.course.lower()})" if best.course else "") + "."]
+    h = hits[best]
+    have = [x for x in h.ingredients.split("; ") if set(x.split()) & q]
+    missing = [x for x in h.ingredients.split("; ") if not set(x.split()) & q][:5]
+    parts = [f"Try “{h.title}”" + (f" ({h.course.lower()})" if h.course else "") + "."]
+    if reason:
+        parts.append(reason)
     if have:
         parts.append("It uses " + ", ".join(have[:4]) + ".")
     if missing:
         parts.append("You would also need " + ", ".join(missing) + ".")
-    if len(hits) > 1:
-        parts.append("Alternatives: " + "; ".join(h.title for h in hits[1:3]) + ".")
+    others = [x.title for i, x in enumerate(hits) if i != best][:2]
+    if others:
+        parts.append("Alternatives: " + "; ".join(others) + ".")
     return " ".join(parts)

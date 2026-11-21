@@ -122,3 +122,12 @@ def test_bundle_rejects_unknown_final_adapter(split_csv, tmp_path):
 def test_make_split_is_balanced():
     df = make_split()
     assert isinstance(df, pd.DataFrame) and df.course.value_counts().nunique() == 1
+
+
+def test_parse_choice():
+    from menu.rag.prompts import parse_choice
+
+    assert parse_choice("2: Uses the lemon and the rice. Also great", 4) == (1, "Uses the lemon and the rice.")
+    assert parse_choice("[1] quick weeknight dish", 4) == (0, "quick weeknight dish.")
+    assert parse_choice("7: nope", 4) == (None, "")
+    assert parse_choice("I would cook soup", 4) == (None, "")
