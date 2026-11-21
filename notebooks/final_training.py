@@ -25,6 +25,11 @@ import sys
 REPO = os.environ.get("MENU_REPO", "git+https://github.com/K4n4y3/FinalProject@main")
 if os.environ.get("MENU_SKIP_INSTALL") != "1":
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"menu-from-nn[llm] @ {REPO}"], check=True)
+    # always take the latest commit of the package code (pip skips a reinstall when the version string is unchanged)
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q", "--force-reinstall", "--no-deps", f"menu-from-nn @ {REPO}"],
+        check=True,
+    )
 
 # %%
 import json

@@ -72,6 +72,10 @@ def rag_examples(frame: pd.DataFrame, retriever: RecipeRetriever, k: int = 3, mo
 def train_lora(examples: Sequence[Example], cfg: LoraConfigSpec, out_dir: str | Path, log_every: int = 100) -> dict:
     import torch
     from peft import LoraConfig, TaskType, get_peft_model
+
+    from menu.compat import patch_old_torchao
+
+    patch_old_torchao()
     from torch.utils.data import DataLoader
     from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
 

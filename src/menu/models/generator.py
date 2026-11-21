@@ -71,6 +71,10 @@ class QwenGenerator:
         if spec.adapters:
             from peft import PeftModel
 
+            from menu.compat import patch_old_torchao
+
+            patch_old_torchao()
+
             items = list(spec.adapters.items())
             name, path = items[0]
             model = PeftModel.from_pretrained(model, str(path), adapter_name=name)
