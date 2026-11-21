@@ -79,7 +79,7 @@ def build_bundle(
         dst = gen_dir / name
         if dst.exists():
             shutil.rmtree(dst)
-        shutil.copytree(src, dst, ignore=shutil.ignore_patterns("README.md", "*.bin.tmp"))
+        shutil.copytree(src, dst, ignore=shutil.ignore_patterns("README.md", "*.bin.tmp", "train_report.json"))
     available = (
         sorted(p.name for p in gen_dir.iterdir() if (p / "adapter_config.json").exists()) if gen_dir.exists() else []
     )

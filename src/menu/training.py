@@ -167,7 +167,10 @@ def train_lora(examples: Sequence[Example], cfg: LoraConfigSpec, out_dir: str | 
         "train_minutes": round((time.perf_counter() - t0) / 60, 2),
         "history": history,
     }
-    del model, opt
+    del model, opt, sched, loader, items
+    import gc
+
+    gc.collect()
     if use_amp:
         torch.cuda.empty_cache()
     return report

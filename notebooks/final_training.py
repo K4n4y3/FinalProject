@@ -22,6 +22,8 @@ import os
 import subprocess
 import sys
 
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
 REPO = os.environ.get("MENU_REPO", "git+https://github.com/K4n4y3/FinalProject@main")
 if os.environ.get("MENU_SKIP_INSTALL") != "1":
     subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"menu-from-nn[llm] @ {REPO}"], check=True)
@@ -55,7 +57,10 @@ CONFIG = {
     "val_n": 300,  # validation prompts for model selection
     "test_n": None,  # None = whole test split
     "lora": {"epochs": 2, "learning_rate": 2e-4, "batch_size": 16, "max_len": 192},  # = A4 configuration
-    "lora_rag": {"epochs": 2, "learning_rate": 2e-4, "batch_size": 16, "max_len": 384},
+    # RAG prompts are 2x longer: batch 8 x grad-accum 2 keeps the effective batch of 16 within 15 GB of a T4
+    "lora_rag": {"epochs": 2, "learning_rate": 2e-4, "batch_size": 8, "grad_accum": 2, "max_len": 384},
+    "eval_batch": 32,
+    "eval_batch_rag": 12,
     "dense": True,
     "train_n": None,  # smoke tests only
 }
@@ -122,12 +127,18 @@ print("KB documents:", len(retriever), "| dense:", retriever.dense is not None)
 # %%
 reports = {}
 for name in ("lora", "lora_rag"):
+    done = OUT / "adapters" / name / "train_report.json"
+    if done.exists():
+        reports[name] = json.loads(done.read_text())
+        print(f"== {name}: already trained, reusing {done.parent}")
+        continue
     cfg = LoraConfigSpec(base_model=CONFIG["base_model"], **CONFIG[name])
     examples = plain_examples(train) if name == "lora" else rag_examples(train, retriever, k=CONFIG["rag_k"])
     print(
         f"\n== {name}: {len(examples)} examples; prompt example:\n{examples[0][0][-1]['content'][:400]}\n-> {examples[0][1]}"
     )
     reports[name] = train_lora(examples, cfg, OUT / "adapters" / name)
+    done.write_text(json.dumps(reports[name], default=str))
     print({k: v for k, v in reports[name].items() if k != "history"})
 pd.DataFrame(
     [
@@ -164,7 +175,9 @@ print("base model revision pinned:", base_revision)
 
 val_rows = []
 for v in VARIANTS:
-    row, _ = run_variant(gen, retriever, scorer, val, v)
+    row, _ = run_variant(
+        gen, retriever, scorer, val, v, batch_size=CONFIG["eval_batch_rag"] if v.rag_k else CONFIG["eval_batch"]
+    )
     val_rows.append(row)
     print(f"{v.name:28s} score {row['score']:.3f}  ROUGE-L {row['rougeL']:.3f}  copy {row.get('context_copy', 0):.3f}")
 val_table = pd.DataFrame(val_rows)
@@ -175,7 +188,9 @@ val_table.round(4)
 # %%
 test_rows, examples = [], {}
 for v in VARIANTS:
-    row, pred = run_variant(gen, retriever, scorer, test, v)
+    row, pred = run_variant(
+        gen, retriever, scorer, test, v, batch_size=CONFIG["eval_batch_rag"] if v.rag_k else CONFIG["eval_batch"]
+    )
     test_rows.append(row)
     examples[v.name] = pred.title.tolist()
     pred.to_csv(OUT / f"test_pred_{v.adapter or 'base'}_k{v.rag_k}.csv", index=False)
