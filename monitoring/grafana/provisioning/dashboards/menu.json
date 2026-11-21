@@ -132,8 +132,8 @@
   },
   {
    "id": 5,
-   "type": "barchart",
-   "title": "Predicted dish types",
+   "type": "bargauge",
+   "title": "Predicted dish types (total over the selected range)",
    "datasource": {
     "type": "prometheus",
     "uid": "prom"
@@ -147,15 +147,37 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "sum by (label) (increase(menu_predicted_class_total[1h]))",
-     "legendFormat": "{{label}}"
+     "expr": "sort_desc(sum by (label) (increase(menu_predicted_class_total[$__range])))",
+     "legendFormat": "{{label}}",
+     "instant": true,
+     "range": false
     }
    ],
    "fieldConfig": {
-    "defaults": {},
+    "defaults": {
+     "unit": "short",
+     "decimals": 0,
+     "min": 0,
+     "color": {
+      "mode": "continuous-YlRd"
+     }
+    },
     "overrides": []
    },
-   "options": {}
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "gradient",
+    "showUnfilled": true,
+    "valueMode": "color",
+    "namePlacement": "left",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
   },
   {
    "id": 6,
