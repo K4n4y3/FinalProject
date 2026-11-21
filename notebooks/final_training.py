@@ -51,7 +51,7 @@ from menu.training import LoraConfigSpec, plain_examples, rag_examples, set_seed
 
 CONFIG = {
     "bundle_version": "1.0.0",
-    "hf_repo": "K4n4y3/menu-from-nn",  # model repo for the bundle (created if missing)
+    "hf_repo": "menu-from-nn",  # model repo name; the namespace is taken from the token owner (whoami)
     "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
     "rag_k": 3,
     "val_n": 300,  # validation prompts for model selection
@@ -252,7 +252,12 @@ if token and CONFIG["hf_repo"]:
     from huggingface_hub import HfApi
 
     api = HfApi(token=token)
-    api.create_repo(CONFIG["hf_repo"], repo_type="model", exist_ok=True)
+    me = api.whoami()
+    role = me.get("auth", {}).get("accessToken", {}).get("role")
+    repo_id = CONFIG["hf_repo"] if "/" in CONFIG["hf_repo"] else f"{me['name']}/{CONFIG['hf_repo']}"
+    print(f"HF user {me['name']!r}, token role {role!r} -> {repo_id}")
+    CONFIG["hf_repo"] = repo_id
+    api.create_repo(repo_id, repo_type="model", exist_ok=True)
     commit = api.upload_folder(
         folder_path=str(bundle), repo_id=CONFIG["hf_repo"], commit_message=f"bundle {CONFIG['bundle_version']}"
     )
