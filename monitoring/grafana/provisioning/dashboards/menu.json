@@ -56,12 +56,15 @@
     {
      "refId": "A",
      "expr": "(sum(rate(menu_requests_total{status!=\"ok\"}[5m])) or vector(0)) / clamp_min(sum(rate(menu_requests_total[5m])), 1e-9)",
-     "legendFormat": ""
+     "legendFormat": "share of failed requests"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "percentunit"
+     "unit": "percentunit",
+     "min": 0,
+     "softMax": 0.05,
+     "decimals": 1
     },
     "overrides": []
    },
