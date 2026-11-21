@@ -123,3 +123,4 @@ class Health(BaseModel):
     status: Literal["ok", "degraded", "loading"]
     components: dict[str, bool]
     bundle_version: str | None
+    errors: dict[str, str] = Field(default_factory=dict, description="why a component is not loaded")

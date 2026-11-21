@@ -12,7 +12,7 @@ services:
       MENU_LLM_THREADS: ${MENU_LLM_THREADS:-4}
     volumes:
       - ./artifacts:/home/user/artifacts
-      - hf-cache:/home/user/.cache/huggingface
+      - hf-cache-v2:/home/user/.cache/huggingface
     restart: unless-stopped
 
   prometheus:
@@ -45,4 +45,4 @@ services:
       --csv /out/local_full --html /out/local_full.html --only-summary
 
 volumes:
-  hf-cache:
+  hf-cache-v2:

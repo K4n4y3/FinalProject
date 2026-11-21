@@ -58,6 +58,7 @@ class MenuService:
     generator: TextGenerator | None = None
     llm_ready: bool = False
     llm_error: str | None = None
+    dense_error: str | None = None
     integrity_errors: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
@@ -98,12 +99,16 @@ class MenuService:
     def _load_llm(self) -> None:
         s, g = self.settings, self.manifest.get("generator", {})
         t0 = time.perf_counter()
-        try:
-            if s.enable_dense and self.retriever is not None and self.retriever.dense is not None:
+        if s.enable_dense and self.retriever is not None and self.retriever.dense is not None:
+            try:  # optional: chat/search fall back to BM25 without it, so it must not block the LLM
                 from menu.rag.retriever import sentence_encoder
 
                 self.retriever.attach_encoder(sentence_encoder(self.manifest["retriever"]["dense_model"]))
                 self.monitor.models_loaded.labels("dense_encoder").set(1)
+            except Exception as exc:
+                self.dense_error = f"{type(exc).__name__}: {exc}"
+                log.exception("dense encoder failed to load; search uses BM25 only")
+        try:
             spec = GeneratorSpec(
                 base_model=g.get("base_model", "Qwen/Qwen2.5-0.5B-Instruct"),
                 base_revision=g.get("base_revision"),
@@ -141,7 +146,8 @@ class MenuService:
             status = "loading"
         else:
             status = "ok" if all(comps.values()) else "degraded"
-        return {"status": status, "components": comps, "bundle_version": self.version or None}
+        errors = {k: v for k, v in {"generator_llm": self.llm_error, "dense_encoder": self.dense_error}.items() if v}
+        return {"status": status, "components": comps, "bundle_version": self.version or None, "errors": errors}
 
     def _meta(self, t0: float, warnings: list[str] | None = None) -> Meta:
         return Meta(

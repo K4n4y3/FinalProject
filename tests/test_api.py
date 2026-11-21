@@ -107,7 +107,8 @@ def test_ui_is_mounted(client):
 
 
 def test_degraded_mode_without_llm(client_no_llm):
-    assert client_no_llm.get("/health").json()["status"] == "degraded"
+    h = client_no_llm.get("/health").json()
+    assert h["status"] == "degraded" and "disabled" in h["errors"]["generator_llm"]
     g = client_no_llm.post("/v1/generate", json={"ingredients": MOJITO}).json()
     assert g["degraded"] is True and g["mode"] == "retrieval_fallback" and g["title"]
     c = client_no_llm.post("/v1/chat", json={"message": "gin and lime"}).json()

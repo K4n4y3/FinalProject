@@ -28,6 +28,8 @@ RUN if [ "$WITH_LLM" = "1" ]; then EXTRA="--extra llm"; else EXTRA=""; fi \
 COPY src ./src
 RUN uv pip install --no-deps . && python -c "import menu; print('menu', menu.__version__)"
 
+# model cache owned by the runtime user (a named volume mounted here inherits this ownership)
+RUN mkdir -p /home/user/.cache/huggingface /home/user/artifacts && chown -R user:user /home/user/.cache /home/user/artifacts
 USER user
 ENV MENU_ARTIFACTS_DIR=/home/user/artifacts PORT=7860 MENU_ENABLE_LLM=${WITH_LLM}
 # Model bundle: mount ./artifacts or set MENU_HF_REPO (+ MENU_HF_REVISION) to download the pinned version at start.
