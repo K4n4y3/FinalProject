@@ -22,6 +22,14 @@ DECODING: dict[str, dict[str, Any]] = {
 }
 
 
+def dtype_kwarg(dtype) -> dict:
+    """transformers>=4.56 renamed ``torch_dtype`` to ``dtype``; support both (Kaggle images lag behind)."""
+    import transformers
+    from packaging.version import Version
+
+    return {"dtype": dtype} if Version(transformers.__version__) >= Version("4.56") else {"torch_dtype": dtype}
+
+
 class TextGenerator(Protocol):
     adapters: list[str]
 
@@ -56,7 +64,9 @@ class QwenGenerator:
         self.tok = AutoTokenizer.from_pretrained(spec.base_model, revision=spec.base_revision)
         if self.tok.pad_token is None:
             self.tok.pad_token = self.tok.eos_token
-        model: Any = AutoModelForCausalLM.from_pretrained(spec.base_model, revision=spec.base_revision, dtype=dtype)
+        model: Any = AutoModelForCausalLM.from_pretrained(
+            spec.base_model, revision=spec.base_revision, **dtype_kwarg(dtype)
+        )
         self.adapters: list[str] = []
         if spec.adapters:
             from peft import PeftModel

@@ -17,6 +17,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from menu.models.generator import dtype_kwarg
 from menu.rag.prompts import title_messages
 from menu.rag.retriever import RecipeRetriever
 
@@ -80,7 +81,9 @@ def train_lora(examples: Sequence[Example], cfg: LoraConfigSpec, out_dir: str | 
     tok = AutoTokenizer.from_pretrained(cfg.base_model, revision=cfg.base_revision)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    model: Any = AutoModelForCausalLM.from_pretrained(cfg.base_model, revision=cfg.base_revision, dtype=torch.float32)
+    model: Any = AutoModelForCausalLM.from_pretrained(
+        cfg.base_model, revision=cfg.base_revision, **dtype_kwarg(torch.float32)
+    )
     total = sum(p.numel() for p in model.parameters())
     model = get_peft_model(
         model,
