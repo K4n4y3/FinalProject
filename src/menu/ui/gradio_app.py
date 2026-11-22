@@ -97,7 +97,7 @@ def build_ui(get_service: Callable[[], MenuService | None]) -> gr.Blocks:
                     "модель": MODE_LABELS[mode],
                     "название": g.title,
                     "мс": round(g.meta.latency_ms),
-                    "копия контекста": "да" if g.context_copy else "",
+                    "копия контекста": ("да" if g.context_copy else "нет") if g.context else "—",
                     "режим": g.mode,
                 }
             )
