@@ -10,7 +10,7 @@
 2. **придумывает название** — Qwen2.5-0.5B-Instruct + LoRA, test ROUGE-L **0.387** (RAG-варианты сравнены, см. Model card);
 3. **отвечает «что приготовить из…»** — чат-ассистент, опирающийся на 14 543 рецепта Epicurious, с источниками.
 
-Финальный проект курса *AI Essentials: Theory and Applications* (Biloshchytskyi Yevhenii, AAI-2602): продолжение
+Финальный проект курса *AI Essentials: Theory and Applications* (Khabibulin Sultan, AAI-2602): продолжение
 Assignments 1–4 — от постановки задачи и подготовки данных до обученной модели, развёрнутой как сервис.
 
 | | |

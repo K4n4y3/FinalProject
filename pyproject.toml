@@ -5,7 +5,7 @@ description = "Menu from Neural Networks: dish-type classification, dish-name ge
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Biloshchytskyi Yevhenii" }]
+authors = [{ name = "Khabibulin Sultan" }]
 dependencies = [
     "numpy>=1.26",
     "pandas>=2.0",

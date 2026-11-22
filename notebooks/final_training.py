@@ -1,7 +1,7 @@
 # %% [markdown]
 # # Меню от нейросетей — финальная модель (Kaggle T4)
 #
-# **Biloshchytskyi Yevhenii · AAI-2602 · AI Essentials: Theory and Applications — Final Project**
+# **Khabibulin Sultan · AAI-2602 · AI Essentials: Theory and Applications — Final Project**
 #
 # Этот ноутбук — единственное место, где нужен GPU. Он использует **тот же пакет `menu`**, что и онлайн-сервис
 # (одинаковые предобработка, промпты и метрики — без расхождений между обучением и inference), и делает:
