@@ -177,7 +177,8 @@ def build_ui(get_service: Callable[[], MenuService | None]) -> gr.Blocks:
             btn2 = gr.Button("Сравнить все генераторы", variant="primary")
             table = gr.Dataframe(wrap=True)
             gr.Markdown(
-                "Один и тот же вход проходит через zero-shot, RAG, LoRA и LoRA-RAG.",
+                "Один и тот же вход проходит через zero-shot, RAG, LoRA и LoRA-RAG. «Копия контекста»: «да» — название "
+                "дословно совпало с найденным рецептом, «—» — режим без контекста.",
                 elem_classes="small-note",
             )
             btn2.click(run_compare, ing2, table, api_name="compare")
